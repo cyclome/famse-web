@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="da">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>FAMSE</title>
+  <link rel="icon" href="logo.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- 1 · Landing -->
+  <section id="landing" class="screen active"><div class="pane">
+    <img class="logo" src="logo.png" alt="FAMSE">
+    <h1>FAMSE</h1>
+    <p class="muted">Fluctuating Attention &amp; working Memory SEquence</p>
+    <p>En kort opmærksomhedstest. Du får vist tal ét ad gangen og trykker,
+       når du ser <b>tre ens i træk</b> (tre ulige eller tre lige) — og igen for
+       hvert tal rækken fortsætter.</p>
+    <p class="muted">Der gemmes <b>ingen personoplysninger</b>. Dine svar er anonyme.</p>
+    <div class="spacer"></div>
+    <button class="btn" data-go="screening">Start</button>
+  </div></section>
+
+  <!-- 2 · Screening -->
+  <section id="screening" class="screen"><div class="pane">
+    <h2>Nogle få spørgsmål</h2>
+    <form id="screeningForm"></form>
+    <div class="err" id="screeningErr"></div>
+    <button class="btn" id="screeningNext">Fortsæt</button>
+  </div></section>
+
+  <!-- 3 · Instructions -->
+  <section id="intro" class="screen"><div class="pane">
+    <h2>Sådan gør du</h2>
+    <p>Tal vises ét ad gangen. Tryk på den store knap, når de sidste <b>tre tal</b>
+       er af samme slags (alle ulige eller alle lige). Fortsætter rækken med endnu
+       et tal af samme slags, trykker du <b>igen</b> — én gang for hvert nyt tal.</p>
+    <p class="muted">Testen varer nogle minutter. Sid roligt og hold fokus.</p>
+    <div class="spacer"></div>
+    <button class="btn" data-go="q1">Fortsæt</button>
+  </div></section>
+
+  <!-- 4 · Pre-test Q1 -->
+  <section id="q1" class="screen"><div class="pane">
+    <h2>Sidder du uforstyrret i et rum?</h2>
+    <button class="btn" data-go="q2">Ja</button>
+  </div></section>
+
+  <!-- 5 · Pre-test Q2 -->
+  <section id="q2" class="screen"><div class="pane">
+    <h2>Har du slået notifikationer fra?</h2>
+    <button class="btn" id="toCountdown">Ja</button>
+  </div></section>
+
+  <!-- 6 · Countdown -->
+  <section id="countdown" class="screen"><div class="pane">
+    <p>Testen begynder om:</p>
+    <div class="count" id="count">3</div>
+  </div></section>
+
+  <!-- 7 · Test -->
+  <section id="test" class="screen">
+    <div class="top"><div id="digit"></div></div>
+    <div class="bottom"><div id="tapbtn" role="button" aria-label="Tryk">TRYK</div></div>
+  </section>
+
+  <!-- 8 · Done -->
+  <section id="done" class="screen"><div class="pane">
+    <img class="logo" src="logo.png" alt="FAMSE">
+    <h2>Tak fordi du deltog!</h2>
+    <p class="muted" id="doneMsg">Dine anonyme svar er gemt.</p>
+    <div class="spacer"></div>
+    <a class="dl" id="downloadLink" href="#">Download dine data (JSON)</a>
+  </div></section>
+
+  <script src="sequences.js"></script>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
