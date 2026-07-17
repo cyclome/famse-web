@@ -1,4 +1,6 @@
-/* FAMSE web — study configuration. Edit this file per project (agile). */
+/* FAMSE web — study configuration. Edit this file per project (agile).
+   Bilingual: label/options carry {da, en}. Answers are stored language-
+   INDEPENDENTLY (canonical value below), so switching DA/EN never changes data. */
 window.FAMSE_CONFIG = {
   // How many of the 20 sequences to join for one run (each 175 digits, 600 ms).
   // 4 = ~7 min. Lower (e.g. 2 = ~3.5 min) for a shorter pilot.
@@ -10,25 +12,46 @@ window.FAMSE_CONFIG = {
 
   // Screening questions — shown before the test, stored with the run.
   // types: number | choice | scale | yesno
+  // Stored value: number -> the number; scale -> the number; yesno -> "yes"/"no";
+  // choice -> the `values[i]` code (falls back to the English option if omitted).
   screening: [
-    { id: "age", type: "number", label: "Alder (år)", min: 18, max: 120, required: true },
     {
-      id: "gender", type: "choice", label: "Køn",
-      options: ["Kvinde", "Mand", "Andet", "Vil ikke oplyse"], required: true,
+      id: "age", type: "number",
+      label: { da: "Alder (år)", en: "Age (years)" },
+      min: 18, max: 120, required: true,
+    },
+    {
+      id: "gender", type: "choice",
+      label: { da: "Køn", en: "Gender" },
+      options: {
+        da: ["Kvinde", "Mand", "Andet", "Vil ikke oplyse"],
+        en: ["Female", "Male", "Other", "Prefer not to say"],
+      },
+      values: ["female", "male", "other", "undisclosed"],
+      required: true,
     },
     {
       id: "sleep_1_10", type: "scale",
-      label: "På en skala fra 1–10 (10 = perfekt): hvor godt sov du i nat?",
+      label: {
+        da: "På en skala fra 1–10 (10 = perfekt): hvor godt sov du i nat?",
+        en: "On a scale of 1–10 (10 = perfect): how well did you sleep last night?",
+      },
       min: 1, max: 10, required: true,
     },
     {
       id: "nicotine_2h", type: "yesno",
-      label: "Inden for de sidste to timer — har du røget eller brugt nikotinprodukter?",
+      label: {
+        da: "Inden for de sidste to timer — har du røget eller brugt nikotinprodukter?",
+        en: "In the last two hours — have you smoked or used nicotine products?",
+      },
       required: true,
     },
     {
       id: "caffeine_2h", type: "yesno",
-      label: "Inden for de sidste to timer — har du indtaget koffeinholdige drikke (kaffe, sort te, energidrik)?",
+      label: {
+        da: "Inden for de sidste to timer — har du indtaget koffeinholdige drikke (kaffe, sort te, energidrik)?",
+        en: "In the last two hours — have you consumed caffeinated drinks (coffee, black tea, energy drinks)?",
+      },
       required: true,
     },
   ],
