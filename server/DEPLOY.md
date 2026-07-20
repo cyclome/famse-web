@@ -10,6 +10,11 @@ agreement, and **no Schrems II** issue (not US-owned).
 - Pick an **EU location** (Nuremberg/Falkenstein DE, or Helsinki FI).
 - Note in your ROPA: processor = Hetzner (EU), data = anonymous/pseudonymous FAMSE runs,
   retention = <your policy>, no PII by design.
+- **IP-free logs:** the `Caddyfile` strips client IPs from access logs, and uvicorn only
+  ever sees `127.0.0.1` (the proxy) — so no visitor IPs are stored anywhere.
+- In the Hetzner DPA form: check **Log data**, add a custom data type
+  *"pseudonymous/anonymous research data (cognitive test + short screening)"*, and add
+  affected people *"research study participants"*; download both PDFs for your file.
 
 ## 1. Server
 - Create an **Ubuntu 24.04** server (CX22 is plenty). Add your SSH key. IPv4 (+IPv6).

@@ -12,7 +12,16 @@ api.famse.cyclome.dk {
 	reverse_proxy 127.0.0.1:8000
 
 	log {
-		# Never log request bodies. Keep minimal access logs; rotate/retain per policy.
 		output file /var/log/caddy/famse.log
+		# Anonymise: strip client IPs from access logs so the logs stay IP-free.
+		# (Request bodies are never logged by Caddy anyway.)
+		format filter {
+			wrap json
+			fields {
+				request>remote_ip delete
+				request>client_ip delete
+				request>headers>X-Forwarded-For delete
+			}
+		}
 	}
 }
