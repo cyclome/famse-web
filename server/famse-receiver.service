@@ -1,0 +1,20 @@
+[Unit]
+Description=FAMSE web receiver (write-only)
+After=network.target
+
+[Service]
+User=famse
+WorkingDirectory=/opt/famse-receiver/app
+EnvironmentFile=/etc/famse-receiver.env
+ExecStart=/opt/famse-receiver/.venv/bin/uvicorn main:app --host 127.0.0.1 --port 8000
+Restart=always
+RestartSec=3
+# Hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/opt/famse-receiver/data
+ProtectHome=true
+
+[Install]
+WantedBy=multi-user.target

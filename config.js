@@ -6,9 +6,10 @@ window.FAMSE_CONFIG = {
   // 4 = ~7 min. Lower (e.g. 2 = ~3.5 min) for a shorter pilot.
   sequencesPerSession: 4,
 
-  // Anonymous data sink. Leave "" to only download + localStorage. Set to a URL
-  // (your EU endpoint / Supabase REST) to also POST the JSON. No PII is collected.
-  endpoint: "",
+  // Anonymous data sink. Leave "" to only download + localStorage. Set to the
+  // EU-VPS receiver URL to also POST the JSON. No PII is collected.
+  endpoint: "",                 // e.g. "https://api.famse.cyclome.dk/famse"
+  endpointToken: "",            // must match the server's FAMSE_TOKEN (light deterrent only)
 
   // Screening questions — shown before the test, stored with the run.
   // types: number | choice | scale | yesno

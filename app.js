@@ -211,11 +211,22 @@
       var r = (Math.random() * 16) | 0; return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
     });
   }
+  // Personal-link support: an invitation link may carry ?p=<token> (or ?t=).
+  // Present -> pseudonymous run; absent -> anonymous. Never a name/email.
+  function participantToken() {
+    try {
+      var p = new URLSearchParams(location.search);
+      var v = p.get("p") || p.get("t");
+      return v ? String(v).slice(0, 64) : null;
+    } catch (e) { return null; }
+  }
+
   function saveAndDone(run) {
     var rec = {
       schema: "famse-web/1",
       bank_version: BANK.bank_version,
       anon_token: uuid(),
+      participant_token: participantToken(),   // null if opened via an open (anonymous) link
       lang: LANG,
       device: { ua: navigator.userAgent, w: screen.width, h: screen.height, dpr: window.devicePixelRatio },
       sequences_per_session: N_PER,
@@ -228,7 +239,9 @@
     show("done");
     $("doneMsg").textContent = t("done.msg");
     if (CFG.endpoint) {
-      fetch(CFG.endpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body: json })
+      var headers = { "Content-Type": "application/json" };
+      if (CFG.endpointToken) headers["Authorization"] = "Bearer " + CFG.endpointToken;
+      fetch(CFG.endpoint, { method: "POST", headers: headers, body: json })
         .catch(function () { $("doneMsg").textContent = t("done.msgLocal"); });
     }
     var blob = new Blob([json], { type: "application/json" });

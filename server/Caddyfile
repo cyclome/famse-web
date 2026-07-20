@@ -1,0 +1,18 @@
+# Caddy = automatic HTTPS (Let's Encrypt) + reverse proxy to the receiver.
+# Point DNS: A/AAAA  api.famse.cyclome.dk -> this VPS. Then `systemctl reload caddy`.
+api.famse.cyclome.dk {
+	encode gzip
+
+	# Basic rate limit on the write endpoint (needs the caddy-ratelimit plugin;
+	# otherwise drop this block and rely on the app + size cap).
+	# rate_limit {
+	#	zone famse { key {remote_host} events 30 window 1m }
+	# }
+
+	reverse_proxy 127.0.0.1:8000
+
+	log {
+		# Never log request bodies. Keep minimal access logs; rotate/retain per policy.
+		output file /var/log/caddy/famse.log
+	}
+}

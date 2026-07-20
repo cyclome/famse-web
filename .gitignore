@@ -1,1 +1,5 @@
 _preview.png
+server/data/
+server/__pycache__/
+server/.pytest_cache/
+**/__pycache__/
