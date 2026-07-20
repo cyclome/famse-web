@@ -8,8 +8,8 @@ window.FAMSE_CONFIG = {
 
   // Anonymous data sink. Leave "" to only download + localStorage. Set to the
   // EU-VPS receiver URL to also POST the JSON. No PII is collected.
-  endpoint: "",                 // e.g. "https://api.famse.cyclome.dk/famse"
-  endpointToken: "",            // must match the server's FAMSE_TOKEN (light deterrent only)
+  endpoint: "https://api.famse.cyclome.dk/famse",                 // e.g. "https://api.famse.cyclome.dk/famse"
+  endpointToken: "8e7775b91ce492be7a7eb1c2abb2f1d4455e3b4040626291",            // must match the server's FAMSE_TOKEN (light deterrent only)
 
   // Screening questions — shown before the test, stored with the run.
   // types: number | choice | scale | yesno
