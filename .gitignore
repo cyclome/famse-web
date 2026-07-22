@@ -3,3 +3,7 @@ server/data/
 server/__pycache__/
 server/.pytest_cache/
 **/__pycache__/
+trail_data/
+trial_data/
+*_data/
+famse_*.json
