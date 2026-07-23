@@ -12,6 +12,8 @@
   if (!I18N[LANG]) LANG = "da";
 
   var answers = {};                 // screening answers (language-independent values)
+  var identifier = null;            // optional study code entered at start
+  var IDCFG = CFG.identifier || { enabled: false };
   var $ = function (id) { return document.getElementById(id); };
   var round2 = function (x) { return Math.round(x * 100) / 100; };
   var t = function (k) { return (I18N[LANG] && I18N[LANG][k]) || I18N.da[k] || k; };
@@ -31,6 +33,10 @@
     document.querySelectorAll("#lang button").forEach(function (b) {
       b.classList.toggle("active", b.getAttribute("data-lang") === LANG);
     });
+    if (IDCFG.enabled) {
+      $("identifierLabel").textContent = (IDCFG.label && (IDCFG.label[LANG] || IDCFG.label.da)) || "";
+      $("identifierHelp").textContent = (IDCFG.help && (IDCFG.help[LANG] || IDCFG.help.da)) || "";
+    }
     renderScreening();
   }
   document.querySelectorAll("#lang button").forEach(function (b) {
@@ -44,6 +50,20 @@
   // Generic "data-go" navigation.
   document.querySelectorAll("[data-go]").forEach(function (b) {
     b.addEventListener("click", function () { show(b.getAttribute("data-go")); });
+  });
+
+  // Start -> identifier screen (if enabled) or straight to screening.
+  $("startBtn").addEventListener("click", function () {
+    show(IDCFG.enabled ? "identifier" : "screening");
+  });
+  var idInput = $("identifierInput");
+  if (idInput) {
+    idInput.addEventListener("input", function () { identifier = idInput.value.trim() || null; });
+  }
+  $("identifierNext").addEventListener("click", function () {
+    if (IDCFG.required && !identifier) { $("identifierErr").textContent = t("identifier.err"); return; }
+    $("identifierErr").textContent = "";
+    show("screening");
   });
 
   // ---- Screening -------------------------------------------------------
@@ -226,7 +246,8 @@
       schema: "famse-web/1",
       bank_version: BANK.bank_version,
       anon_token: uuid(),
-      participant_token: participantToken(),   // null if opened via an open (anonymous) link
+      identifier: identifier || null,          // study code typed at start (pseudonymous), else null
+      participant_token: participantToken(),    // from a personal link (?p=), else null
       lang: LANG,
       device: { ua: navigator.userAgent, w: screen.width, h: screen.height, dpr: window.devicePixelRatio },
       sequences_per_session: N_PER,
@@ -234,19 +255,23 @@
       run: run,
     };
     var json = JSON.stringify(rec);
-    try { localStorage.setItem("famse_" + rec.anon_token, json); } catch (e) {}
+    function keepLocal() { try { localStorage.setItem("famse_" + rec.anon_token, json); } catch (e) {} }
+
     $("lang").style.display = "";
     show("done");
     $("doneMsg").textContent = t("done.msg");
+
+    // The participant can NOT download their data. Send to the server; only if
+    // that fails do we keep a local copy so it isn't lost (recoverable later).
     if (CFG.endpoint) {
       var headers = { "Content-Type": "application/json" };
       if (CFG.endpointToken) headers["Authorization"] = "Bearer " + CFG.endpointToken;
       fetch(CFG.endpoint, { method: "POST", headers: headers, body: json })
-        .catch(function () { $("doneMsg").textContent = t("done.msgLocal"); });
+        .then(function (r) { if (!r.ok) throw new Error(); })
+        .catch(function () { keepLocal(); $("doneMsg").textContent = t("done.msgLocal"); });
+    } else {
+      keepLocal();   // no endpoint configured -> local is the only sink
     }
-    var blob = new Blob([json], { type: "application/json" });
-    $("downloadLink").href = URL.createObjectURL(blob);
-    $("downloadLink").download = "famse_" + rec.anon_token + ".json";
   }
 
   applyLang();   // sets all text for the current language + renders screening

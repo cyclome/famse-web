@@ -22,7 +22,16 @@
     <p data-i18n="landing.intro"></p>
     <p class="muted" data-i18n="landing.privacy"></p>
     <div class="spacer"></div>
-    <button class="btn" data-go="screening" data-i18n="btn.start"></button>
+    <button class="btn" id="startBtn" data-i18n="btn.start"></button>
+  </div></section>
+
+  <!-- 1b · Identifier (optional, config-driven) -->
+  <section id="identifier" class="screen"><div class="pane">
+    <h2 id="identifierLabel"></h2>
+    <p class="muted" id="identifierHelp"></p>
+    <input id="identifierInput" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false">
+    <div class="err" id="identifierErr"></div>
+    <button class="btn" id="identifierNext" data-i18n="btn.continue"></button>
   </div></section>
 
   <!-- 2 · Screening -->
@@ -71,8 +80,6 @@
     <img class="logo" src="logo.png" alt="FAMSE">
     <h2 data-i18n="done.heading"></h2>
     <p class="muted" id="doneMsg" data-i18n="done.msg"></p>
-    <div class="spacer"></div>
-    <a class="dl" id="downloadLink" href="#" data-i18n="done.download"></a>
   </div></section>
 
   <script src="sequences.js"></script>

@@ -11,6 +11,20 @@ window.FAMSE_CONFIG = {
   endpoint: "https://api.famse.cyclome.dk/famse",                 // e.g. "https://api.famse.cyclome.dk/famse"
   endpointToken: "8e7775b91ce492be7a7eb1c2abb2f1d4455e3b4040626291",            // must match the server's FAMSE_TOKEN (light deterrent only)
 
+  // Optional identifier entered at the start (before the questions). Stored as
+  // `identifier` in the record. Enabling this makes runs PSEUDONYMOUS (the code
+  // can link to a person via your invitation list) — it is a study code, not a
+  // name. Set enabled:false for a fully anonymous open link.
+  identifier: {
+    enabled: true,
+    required: true,
+    label: { da: "Indtast din deltager-kode", en: "Enter your participant code" },
+    help: {
+      da: "Koden står i din invitation. Skriv ikke dit navn.",
+      en: "The code is in your invitation. Do not enter your name.",
+    },
+  },
+
   // Screening questions — shown before the test, stored with the run.
   // types: number | choice | scale | yesno
   // Stored value: number -> the number; scale -> the number; yesno -> "yes"/"no";
