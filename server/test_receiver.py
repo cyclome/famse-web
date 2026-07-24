@@ -48,3 +48,8 @@ def test_rejects_oversize():
 def test_no_list_route():
     # Write-only: there is no way to read back data.
     assert c.get("/famse").status_code in (404, 405)
+
+
+def test_bank_404_when_unconfigured():
+    # FAMSE_BANK_FILE is not set in tests → /bank is disabled.
+    assert c.get("/bank").status_code == 404

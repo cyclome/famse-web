@@ -9,6 +9,7 @@ Runs on an EU-owned VPS (option 5) behind Caddy (HTTPS). Config via env:
   FAMSE_TOKEN           if set, require Authorization: Bearer <token> (light spam deterrent —
                         NOT strong auth, since a public web page's token is visible to anyone)
   FAMSE_MAX_BYTES       max request body                   (default 262144 = 256 KB)
+  FAMSE_BANK_FILE       path to bank.json served at GET /bank (blank = disabled)
 
 Security model for a public endpoint: CORS limits browsers to the one origin,
 Caddy does rate-limiting/TLS, bodies are size-capped and never executed, and the
@@ -32,6 +33,7 @@ DATA_DIR.mkdir(parents=True, exist_ok=True)
 ALLOWED_ORIGIN = os.environ.get("FAMSE_ALLOWED_ORIGIN", "https://famse.cyclome.dk")
 TOKEN = os.environ.get("FAMSE_TOKEN", "")
 MAX_BYTES = int(os.environ.get("FAMSE_MAX_BYTES", "262144"))
+BANK_FILE = os.environ.get("FAMSE_BANK_FILE", "")
 
 app = FastAPI(title="FAMSE receiver", docs_url=None, redoc_url=None, openapi_url=None)
 app.add_middleware(
@@ -51,6 +53,19 @@ def _safe(s: str, n: int) -> str:
 @app.get("/health")
 def health():
     return {"ok": True}
+
+
+@app.get("/bank")
+def bank():
+    """Serve the current stimulus bank so apps can update sequences without a
+    rebuild. Read from disk each request → replace the file to publish an update.
+    Not participant data (it is the test design)."""
+    if not BANK_FILE:
+        raise HTTPException(status_code=404, detail="no bank configured")
+    p = Path(BANK_FILE)
+    if not p.exists():
+        raise HTTPException(status_code=404, detail="bank not found")
+    return JSONResponse(json.loads(p.read_text(encoding="utf-8")))
 
 
 @app.post("/famse")

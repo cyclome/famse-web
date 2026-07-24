@@ -73,6 +73,29 @@ Commit + push; GitHub Pages redeploys. A finished run now POSTs its JSON here.
 > per-participant allowlist (personal-link studies), validate the invitation token
 > in `main.py` against an issued-token list instead of one shared token.
 
+## 5b. Serve the app's stimulus bank (updatable sequences)
+
+The native app fetches its bank from `GET /bank` and caches it, so you can update
+sequences **without an app rebuild** — just replace one file.
+
+```bash
+# add to /etc/famse-receiver.env:
+#   FAMSE_BANK_FILE=/opt/famse-receiver/bank.json
+sudo sed -i '/^FAMSE_MAX_BYTES/a FAMSE_BANK_FILE=/opt/famse-receiver/bank.json' /etc/famse-receiver.env
+
+# publish the bank (from your PC, the generator output):
+#   scp dawoe/tools/generator/dist/sequences.json tfh@<host>:/tmp/bank.json
+sudo mv /tmp/bank.json /opt/famse-receiver/bank.json
+sudo chown famse:famse /opt/famse-receiver/bank.json
+
+sudo systemctl restart famse-receiver
+curl -s https://api.famse.cyclome.dk/bank | head -c 120; echo    # should be the bank JSON
+```
+
+**To update sequences later:** regenerate, `scp` the new `sequences.json` over
+`/opt/famse-receiver/bank.json` (bump `bank_version` in the generator), done —
+apps pick it up next launch. No restart needed (read per request).
+
 ## 6. Retrieve / retain data
 - Files land in `/opt/famse-receiver/data/*.json` (write-only from the web).
 - Pull them over SSH: `scp famse@<host>:/opt/famse-receiver/data/*.json ./`
