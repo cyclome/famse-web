@@ -67,10 +67,24 @@
   });
 
   // ---- Screening -------------------------------------------------------
+  // Types: number | choice | scale | yesno | text | multichoice.
+  // choice/multichoice may set `other: true` -- the LAST entry in
+  // options/values is then treated as "Other", revealing a free-text input
+  // stored under `<id>_other`.
+  // `showIf: { id, equals }` conditionally shows a question based on another
+  // question's current (canonical) answer; hidden questions are skipped for
+  // both rendering and required-validation, and their stored answers are
+  // cleared so a stale answer from a since-changed gate never gets submitted.
   function yesnoLabels() { return LANG === "da" ? ["Ja", "Nej"] : ["Yes", "No"]; }
+  function isVisible(q) {
+    return !q.showIf || answers[q.showIf.id] === q.showIf.equals;
+  }
   function canonOf(q, idx) {
     if (q.type === "yesno") return idx === 0 ? "yes" : "no";
-    if (q.type === "choice") return (q.values && q.values[idx]) || q.options.en[idx];
+    if (q.type === "choice" || q.type === "multichoice") {
+      if (q.other && idx === (q.values || q.options.en).length - 1) return "other";
+      return (q.values && q.values[idx]) || q.options.en[idx];
+    }
     return null;
   }
   function selectedIndex(q) {
@@ -86,11 +100,19 @@
     return -1;
   }
 
+  function clearHiddenAnswers() {
+    CFG.screening.forEach(function (q) {
+      if (!isVisible(q)) { delete answers[q.id]; delete answers[q.id + "_other"]; }
+    });
+  }
+
   function renderScreening() {
     var form = $("screeningForm");
     if (!form) return;
+    clearHiddenAnswers();
     form.innerHTML = "";
     CFG.screening.forEach(function (q) {
+      if (!isVisible(q)) return;
       var wrap = document.createElement("div");
       wrap.className = "q";
       var lab = document.createElement("label");
@@ -98,16 +120,47 @@
       lab.textContent = q.label[LANG] || q.label.da;
       wrap.appendChild(lab);
 
-      if (q.type === "number") {
+      if (q.type === "number" || q.type === "text") {
         var inp = document.createElement("input");
-        inp.type = "number";
+        inp.type = q.type === "number" ? "number" : "text";
         if (q.min != null) inp.min = q.min;
         if (q.max != null) inp.max = q.max;
         if (answers[q.id] !== undefined) inp.value = answers[q.id];
         inp.addEventListener("input", function () {
-          answers[q.id] = inp.value === "" ? undefined : Number(inp.value);
+          if (inp.value === "") { answers[q.id] = undefined; return; }
+          answers[q.id] = q.type === "number" ? Number(inp.value) : inp.value;
         });
         wrap.appendChild(inp);
+      } else if (q.type === "multichoice") {
+        var mbox = document.createElement("div");
+        mbox.className = "opts";
+        var mlabels = q.options[LANG] || q.options.da;
+        var selected = Array.isArray(answers[q.id]) ? answers[q.id] : [];
+        mlabels.forEach(function (o, idx) {
+          var el = document.createElement("div");
+          var code = canonOf(q, idx);
+          el.className = "opt" + (selected.indexOf(code) !== -1 ? " sel" : "");
+          el.textContent = o;
+          el.addEventListener("click", function () {
+            var arr = Array.isArray(answers[q.id]) ? answers[q.id].slice() : [];
+            var at = arr.indexOf(code);
+            if (at === -1) arr.push(code); else arr.splice(at, 1);
+            answers[q.id] = arr;
+            renderScreening();   // re-render: reveals/hides the "Other" field, and any showIf-gated questions
+          });
+          mbox.appendChild(el);
+        });
+        wrap.appendChild(mbox);
+        var otherInp;
+        if (q.other) {
+          otherInp = document.createElement("input");
+          otherInp.type = "text";
+          otherInp.placeholder = t("screening.otherPlaceholder");
+          otherInp.style.display = selected.indexOf("other") !== -1 ? "" : "none";
+          if (answers[q.id + "_other"] !== undefined) otherInp.value = answers[q.id + "_other"];
+          otherInp.addEventListener("input", function () { answers[q.id + "_other"] = otherInp.value; });
+          wrap.appendChild(otherInp);
+        }
       } else {
         var box = document.createElement("div");
         box.className = q.type === "scale" ? "scale" : "opts";
@@ -115,19 +168,28 @@
           : q.type === "scale" ? range(q.min, q.max)
             : (q.options[LANG] || q.options.da);
         var sel = selectedIndex(q);
+        var oInp;
         labels.forEach(function (o, idx) {
           var el = document.createElement("div");
           el.className = "opt" + (idx === sel ? " sel" : "");
           el.textContent = o;
           el.addEventListener("click", function () {
-            answers[q.id] = q.type === "scale" ? Number(o) : canonOf(q, idx);
-            var sibs = box.querySelectorAll(".opt");
-            for (var k = 0; k < sibs.length; k++) sibs[k].classList.remove("sel");
-            el.classList.add("sel");
+            var code = q.type === "scale" ? Number(o) : canonOf(q, idx);
+            answers[q.id] = code;
+            renderScreening();   // re-render: reveals/hides the "Other" field, and any showIf-gated questions
           });
           box.appendChild(el);
         });
         wrap.appendChild(box);
+        if (q.other) {
+          oInp = document.createElement("input");
+          oInp.type = "text";
+          oInp.placeholder = t("screening.otherPlaceholder");
+          oInp.style.display = answers[q.id] === "other" ? "" : "none";
+          if (answers[q.id + "_other"] !== undefined) oInp.value = answers[q.id + "_other"];
+          oInp.addEventListener("input", function () { answers[q.id + "_other"] = oInp.value; });
+          wrap.appendChild(oInp);
+        }
       }
       form.appendChild(wrap);
     });
@@ -136,7 +198,9 @@
 
   $("screeningNext").addEventListener("click", function () {
     var missing = CFG.screening.filter(function (q) {
-      return q.required && (answers[q.id] === undefined || answers[q.id] === "");
+      if (!isVisible(q)) return false;
+      var v = answers[q.id];
+      return q.required && (v === undefined || v === "" || (Array.isArray(v) && v.length === 0));
     });
     if (missing.length) { $("screeningErr").textContent = t("screening.err"); return; }
     $("screeningErr").textContent = "";

@@ -1,0 +1,10 @@
+[Unit]
+Description=FAMSE web - send screening reminder emails (one pass)
+After=network.target
+
+[Service]
+Type=oneshot
+User=famse
+EnvironmentFile=/etc/famse-receiver.env
+WorkingDirectory=/opt/famse-receiver/app
+ExecStart=/opt/famse-receiver/.venv/bin/python /opt/famse-receiver/app/send_reminders.py

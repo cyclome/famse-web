@@ -67,11 +67,10 @@ endpointToken: "<same FAMSE_TOKEN>",   // light deterrent (public page → not s
 ```
 Commit + push; GitHub Pages redeploys. A finished run now POSTs its JSON here.
 
-> **Note on the token:** because the page is public, the token is visible to anyone
-> who views source — it only deters casual spam. Real protection = CORS (one origin),
-> Caddy rate-limiting, the 256 KB cap, and the write-only store. For a
-> per-participant allowlist (personal-link studies), validate the invitation token
-> in `main.py` against an issued-token list instead of one shared token.
+> **Note on the token:** the page is public, so the token is visible via view-source — it
+> only deters casual spam. Real protection = CORS (one origin), Caddy rate-limiting, the
+> 256 KB cap, and the write-only store. For a per-participant allowlist, validate the
+> invitation token in `main.py` against an issued-token list instead of one shared token.
 
 ## 5b. Serve the app's stimulus bank (updatable sequences)
 
@@ -100,3 +99,40 @@ apps pick it up next launch. No restart needed (read per request).
 - Files land in `/opt/famse-receiver/data/*.json` (write-only from the web).
 - Pull them over SSH: `scp famse@<host>:/opt/famse-receiver/data/*.json ./`
 - Enable **Hetzner backups** (EU) and set a **retention/cleanup** policy per your ROPA.
+
+## 7. Reminder emails (optional screening question)
+
+The screening's `email` field (optional, `config.js`) is used for exactly one
+thing: a reminder to take the test again, sent `FAMSE_REMINDER_DELAY_MIN`
+minutes (default 120 = 2h) after `run.session_start_wallclock`. A systemd
+timer runs `send_reminders.py` every 5 minutes; once an email is sent it's
+**scrubbed from the stored JSON** (set to `null`) — see the script's
+docstring. No new Python dependency (stdlib `smtplib` only).
+
+**Create a dedicated study Gmail account** (don't reuse a personal one) and
+an **App Password** for it: Google Account → Security → 2-Step Verification
+(must be on) → App passwords → generate one for "Mail". Copy the 16-character
+password — that's `FAMSE_SMTP_PASSWORD` below, not the account's login password.
+
+```bash
+# add to /etc/famse-receiver.env:
+sudo tee -a /etc/famse-receiver.env >/dev/null <<'EOF'
+FAMSE_REMINDER_DELAY_MIN=120
+FAMSE_SMTP_HOST=smtp.gmail.com
+FAMSE_SMTP_PORT=587
+FAMSE_SMTP_USER=<the study Gmail address>
+FAMSE_SMTP_PASSWORD=<the 16-character App Password, no spaces>
+FAMSE_SMTP_FROM=FAMSE Study <the study Gmail address>
+EOF
+
+sudo cp /opt/famse-receiver/app/famse-reminder.service /etc/systemd/system/
+sudo cp /opt/famse-receiver/app/famse-reminder.timer /etc/systemd/system/
+sudo systemctl enable --now famse-reminder.timer
+
+# verify: run one pass by hand and read the log
+sudo systemctl start famse-reminder.service
+sudo journalctl -u famse-reminder.service -n 20 --no-pager
+```
+
+**To disable:** `sudo systemctl disable --now famse-reminder.timer` — existing
+stored emails are untouched either way; only a successful send scrubs one.

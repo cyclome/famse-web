@@ -9,8 +9,11 @@ Live: **https://famse.cyclome.dk** (GitHub Pages).
 
 ## Anonymous by design
 
-No name, no e-mail, no login, and the client cannot read the visitor's IP. Each
-run gets a random `anon_token` only. Each run is saved three ways:
+No name, no login, and the client cannot read the visitor's IP. Each run gets
+a random `anon_token` only. An **optional** e-mail address may be collected
+(screening question, `config.js`) solely to send a reminder to take the test
+a second time — leave it blank to stay fully anonymous. Each run is saved
+three ways:
 
 1. **Download** — the participant can save their own JSON.
 2. **localStorage** — a copy stays in the browser.

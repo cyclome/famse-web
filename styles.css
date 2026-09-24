@@ -36,7 +36,10 @@ button.btn:disabled { opacity: .35; cursor: default; }
 form { width: 100%; text-align: left; }
 .q { margin: 0 0 22px; }
 .q > label.qlabel { display: block; font-size: 17px; font-weight: 600; margin-bottom: 8px; }
-.q input[type=number] { font: inherit; padding: 10px 12px; width: 130px; border: 1.5px solid #999; border-radius: 8px; }
+.q input[type=number], .q input[type=text] { font: inherit; padding: 10px 12px; border: 1.5px solid #999; border-radius: 8px; }
+.q input[type=number] { width: 130px; }
+.q input[type=text] { width: 100%; max-width: 320px; display: block; }
+.q .opts + input[type=text], .q .scale + input[type=text] { margin-top: 8px; }
 #identifierInput { font: inherit; padding: 12px 14px; width: 100%; max-width: 320px; border: 1.5px solid #999; border-radius: 8px; text-align: center; }
 .opts { display: flex; flex-wrap: wrap; gap: 8px; }
 .opt {
